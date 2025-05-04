@@ -1,0 +1,43 @@
+name: CD
+
+on:
+  pull_request:
+    types:
+      - closed
+
+env:
+  TARGET_ENV: ${{ github.base_ref == 'main' && 'prd' || github.base_ref == 'staging' && 'stg' || 'dev' }}
+
+jobs:
+  CD:
+    runs-on: ubuntu-latest
+    environment: ${{ github.base_ref == 'main' && 'prd' || github.base_ref == 'staging' && 'stg' || 'dev' }}
+    timeout-minutes: 30
+    if: github.event.pull_request.merged == true
+
+    permissions:
+      id-token: write # OIDC を使用するために必要
+      contents: read
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: './.node-version'
+
+      - name: Assume Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: "ap-northeast-1"
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+
+      - name: Deploy
+        # HAK: -c accountId の行は公開用にアカウントIDを隠すための記述なので本来は不要
+        run: |
+          npx cdk deploy -c environment=${{ env.TARGET_ENV }} \
+            -c accountId=${{ secrets.AWS_ACCOUNT_ID }} \
+            --require-approval never \
+            --all

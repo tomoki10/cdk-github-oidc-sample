@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { GitHubActionsOidc } from './constructs/github-actions-oidc';
 
-export class CdkGithubOidcSampleStack extends cdk.Stack {
+export class GithubOidcSampleStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
