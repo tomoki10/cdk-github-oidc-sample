@@ -1,20 +1,28 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { CdkGithubOidcSampleStack } from '../lib/cdk-github-oidc-sample-stack';
+import { getAppParameters } from './parameter';
+import { GithubOidcSampleStack } from '../lib/github-oidc-sample-stack';
+import { LambdaStack } from '../lib/lambda-stack';
 
 const app = new cdk.App();
-new CdkGithubOidcSampleStack(app, 'CdkGithubOidcSampleStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const argContext = 'environment';
+const envKey = app.node.tryGetContext(argContext);
+const appParameter = getAppParameters(envKey);
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+new GithubOidcSampleStack(app, 'CdkGithubOidcSampleStack', {
+  // HAK: 本来以下の記述が正しいですが、パブリックリポジトリでアカウントIDを公開しないために
+  //      GitHub EnvironmentのSecretをCLIのオプションから差し込みます。
+  // env: appParameter.env
+  env: {
+    region: appParameter.env.region,
+    account: app.node.tryGetContext('accountId'),
+  },
+});
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+new LambdaStack(app, 'LambdaStack', {
+  env: {
+    region: appParameter.env.region,
+    account: app.node.tryGetContext('accountId'),
+  },
 });
