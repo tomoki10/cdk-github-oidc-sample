@@ -28,6 +28,10 @@ jobs:
         with:
           node-version-file: './.node-version'
 
+      - name: Install node modules
+        shell: bash
+        run: npm ci
+
       - name: Assume Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
