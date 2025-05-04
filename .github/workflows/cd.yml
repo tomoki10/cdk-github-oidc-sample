@@ -11,6 +11,7 @@ env:
 jobs:
   CD:
     runs-on: ubuntu-latest
+    # MEMO: envの記述と共通化する手段がなかったの、冗長だが同じ記述を追加
     environment: ${{ github.base_ref == 'main' && 'prd' || github.base_ref == 'staging' && 'stg' || 'dev' }}
     timeout-minutes: 30
     if: github.event.pull_request.merged == true
